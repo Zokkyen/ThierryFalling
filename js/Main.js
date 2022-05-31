@@ -7,17 +7,20 @@
 var canvas;
 
 
-var delta = [ 0, 0 ];
-var stage = [ window.screenX, window.screenY, window.innerWidth, window.innerHeight ];
+var delta = [0, 0];
+var stage = [window.screenX, window.screenY, window.innerWidth, window.innerHeight];
 getBrowserDimensions();
 
 
 var restitution = 0.80;
 var friction = 0.1;
-var themes = [ [ "#FFFFFF", "#95AB63", "#BDD684", "#E2F0D6", "#F6FFE0" ]];
+var themes = [
+	["#FFFFFF", "#95AB63", "#BDD684", "#E2F0D6", "#F6FFE0"]
+];
 var theme;
 
-var worldAABB, world, iterations = 1, timeStep = 1 / 15;
+var worldAABB, world, iterations = 1,
+	timeStep = 1 / 15;
 
 var walls = [];
 var wall_thickness = 200;
@@ -30,8 +33,14 @@ var destroyMode = false;
 
 var isMouseDown = false;
 var mouseJoint;
-var mouse = { x: 0, y: 0 };
-var gravity = { x: 0, y: 0.1 };
+var mouse = {
+	x: 0,
+	y: 0
+};
+var gravity = {
+	x: 0,
+	y: 0.1
+};
 
 var PI2 = Math.PI * 2;
 
@@ -42,26 +51,26 @@ play();
 
 function init() {
 
-	canvas = document.getElementById( 'canvas' );
+	canvas = document.getElementById('canvas');
 
 	document.onmousedown = onDocumentMouseDown;
 	document.onmouseup = onDocumentMouseUp;
 	document.onmousemove = onDocumentMouseMove;
 	document.ondblclick = onDocumentDoubleClick;
 
-	document.addEventListener( 'touchstart', onDocumentTouchStart, false );
-	document.addEventListener( 'touchmove', onDocumentTouchMove, false );
-	document.addEventListener( 'touchend', onDocumentTouchEnd, false );
+	document.addEventListener('touchstart', onDocumentTouchStart, false);
+	document.addEventListener('touchmove', onDocumentTouchMove, false);
+	document.addEventListener('touchend', onDocumentTouchEnd, false);
 
-	window.addEventListener( 'deviceorientation', onWindowDeviceOrientation, false );
+	window.addEventListener('deviceorientation', onWindowDeviceOrientation, false);
 
 	// init box2d
 
 	worldAABB = new b2AABB();
-	worldAABB.minVertex.Set( -200, -200 );
-	worldAABB.maxVertex.Set( window.innerWidth + 200, window.innerHeight + 200 );
+	worldAABB.minVertex.Set(-200, -200);
+	worldAABB.maxVertex.Set(window.innerWidth + 200, window.innerHeight + 200);
 
-	world = new b2World( worldAABB, new b2Vec2( 0, 0 ), true );
+	world = new b2World(worldAABB, new b2Vec2(0, 0), true);
 
 	setWalls();
 	reset();
@@ -70,33 +79,33 @@ function init() {
 
 function play() {
 
-	setInterval( loop, 1000 / 40 );
+	setInterval(loop, 1000 / 40);
 }
 
 function reset() {
 
 	var i;
 
-	if ( bodies ) {
+	if (bodies) {
 
-		for ( i = 0; i < bodies.length; i++ ) {
+		for (i = 0; i < bodies.length; i++) {
 
-			var body = bodies[ i ]
-			canvas.removeChild( body.GetUserData().element );
-			world.DestroyBody( body );
+			var body = bodies[i]
+			canvas.removeChild(body.GetUserData().element);
+			world.DestroyBody(body);
 			body = null;
 		}
 	}
 
 	// color theme
-	theme = themes[ Math.random() * themes.length >> 0 ];
-	document.body.style[ 'backgroundColor' ] = theme[ 0 ];
+	theme = themes[Math.random() * themes.length >> 0];
+	document.body.style['backgroundColor'] = theme[0];
 
 	bodies = [];
 	elements = [];
 
 
-	for( i = 0; i < 10; i++ ) {
+	for (i = 0; i < 10; i++) {
 
 		createBall();
 
@@ -118,7 +127,7 @@ function onDocumentMouseUp() {
 	return false;
 }
 
-function onDocumentMouseMove( event ) {
+function onDocumentMouseMove(event) {
 
 	mouse.x = event.clientX;
 	mouse.y = event.clientY;
@@ -129,9 +138,9 @@ function onDocumentDoubleClick() {
 	reset();
 }
 
-function onDocumentTouchStart( event ) {
+function onDocumentTouchStart(event) {
 
-	if( event.touches.length == 1 ) {
+	if (event.touches.length == 1) {
 
 		event.preventDefault();
 
@@ -139,7 +148,7 @@ function onDocumentTouchStart( event ) {
 
 		var now = new Date().getTime();
 
-		if ( now - timeOfLastTouch  < 250 ) {
+		if (now - timeOfLastTouch < 250) {
 
 			reset();
 			return;
@@ -147,28 +156,28 @@ function onDocumentTouchStart( event ) {
 
 		timeOfLastTouch = now;
 
-		mouse.x = event.touches[ 0 ].pageX;
-		mouse.y = event.touches[ 0 ].pageY;
+		mouse.x = event.touches[0].pageX;
+		mouse.y = event.touches[0].pageY;
 		isMouseDown = true;
 	}
 }
 
-function onDocumentTouchMove( event ) {
+function onDocumentTouchMove(event) {
 
-	if ( event.touches.length == 1 ) {
+	if (event.touches.length == 1) {
 
 		event.preventDefault();
 
-		mouse.x = event.touches[ 0 ].pageX;
-		mouse.y = event.touches[ 0 ].pageY;
+		mouse.x = event.touches[0].pageX;
+		mouse.y = event.touches[0].pageY;
 
 	}
 
 }
 
-function onDocumentTouchEnd( event ) {
+function onDocumentTouchEnd(event) {
 
-	if ( event.touches.length == 0 ) {
+	if (event.touches.length == 0) {
 
 		event.preventDefault();
 		isMouseDown = false;
@@ -177,12 +186,12 @@ function onDocumentTouchEnd( event ) {
 
 }
 
-function onWindowDeviceOrientation( event ) {
+function onWindowDeviceOrientation(event) {
 
-	if ( event.beta ) {
+	if (event.beta) {
 
-		gravity.x = Math.sin( event.gamma * Math.PI / 180 );
-		gravity.y = Math.sin( ( Math.PI / 4 ) + event.beta * Math.PI / 180 );
+		gravity.x = Math.sin(event.gamma * Math.PI / 180);
+		gravity.y = Math.sin((Math.PI / 4) + event.beta * Math.PI / 180);
 
 	}
 
@@ -191,80 +200,80 @@ function onWindowDeviceOrientation( event ) {
 //
 function createInstructions() {
 
-  var size = 250;
+	var size = 250;
 
-  var element = document.createElement('div');
-  element.width = size;
-  element.height = size;
-  element.style.position = 'absolute';
-  element.style.left = -200 + 'px';
-  element.style.top = -200 + 'px';
-  element.style.cursor = "default";
+	var element = document.createElement('div');
+	element.width = size;
+	element.height = size;
+	element.style.position = 'absolute';
+	element.style.left = -200 + 'px';
+	element.style.top = -200 + 'px';
+	element.style.cursor = "default";
 
-  canvas.appendChild(element);
-  elements.push(element);
+	canvas.appendChild(element);
+	elements.push(element);
 
-  var circle = document.createElement('canvas');
-  circle.width = size;
-  circle.height = size;
+	var circle = document.createElement('canvas');
+	circle.width = size;
+	circle.height = size;
 
-  var graphics = circle.getContext('2d');
+	var graphics = circle.getContext('2d');
 
-  graphics.fillStyle = theme[3];
-  graphics.beginPath();
-  graphics.arc(size * .5, size * .5, size * .5, 0, PI2, true);
-  graphics.closePath();
-  graphics.fill();
+	graphics.fillStyle = theme[3];
+	graphics.beginPath();
+	graphics.arc(size * .5, size * .5, size * .5, 0, PI2, true);
+	graphics.closePath();
+	graphics.fill();
 
-  element.appendChild(circle);
+	element.appendChild(circle);
 
-  text = document.createElement('div');
-  text.onSelectStart = null;
-  text.innerHTML = '<span style="color:' + theme[0] + ';font-size:40px;">Hello!</span><br /><br /><span style="font-size:15px;"><strong>This is how it works:</strong><br /><br />1. Drag a ball.<br />2.&nbsp;Click&nbsp;on&nbsp;the&nbsp;background.<br />3. Shake your browser.<br />4. Double click.<br />5. Play!</span>';
-  text.style.color = theme[1];
-  text.style.position = 'absolute';
-  text.style.left = '0px';
-  text.style.top = '0px';
-  text.style.fontFamily = 'Georgia';
-  text.style.textAlign = 'center';
-  element.appendChild(text);
+	text = document.createElement('div');
+	text.onSelectStart = null;
+	text.innerHTML = '<span style="color:' + theme[0] + ';font-size:40px;">Hello!</span><br /><br /><span style="font-size:15px;"><strong>This is how it works:</strong><br /><br />1. Drag a ball.<br />2.&nbsp;Click&nbsp;on&nbsp;the&nbsp;background.<br />3. Shake your browser.<br />4. Double click.<br />5. Play!</span>';
+	text.style.color = theme[1];
+	text.style.position = 'absolute';
+	text.style.left = '0px';
+	text.style.top = '0px';
+	text.style.fontFamily = 'Georgia';
+	text.style.textAlign = 'center';
+	element.appendChild(text);
 
-  text.style.left = ((250 - text.clientWidth) / 2) + 'px';
-  text.style.top = ((250 - text.clientHeight) / 2) + 'px';
+	text.style.left = ((250 - text.clientWidth) / 2) + 'px';
+	text.style.top = ((250 - text.clientHeight) / 2) + 'px';
 
-  var b2body = new b2BodyDef();
+	var b2body = new b2BodyDef();
 
-  var circle = new b2CircleDef();
-  circle.radius = size / 2;
-  circle.density = 1;
-  circle.friction = 0.3;
-  circle.restitution = 0.3;
-  b2body.AddShape(circle);
-  b2body.userData = {
-    element: element
-  };
+	var circle = new b2CircleDef();
+	circle.radius = size / 2;
+	circle.density = 1;
+	circle.friction = 0.3;
+	circle.restitution = 0.3;
+	b2body.AddShape(circle);
+	b2body.userData = {
+		element: element
+	};
 
-  b2body.position.Set(Math.random() * stage[2], Math.random() * -200);
-  b2body.linearVelocity.Set(Math.random() * 400 - 200, Math.random() * 400 - 200);
-  bodies.push(world.CreateBody(b2body));
+	b2body.position.Set(Math.random() * stage[2], Math.random() * -200);
+	b2body.linearVelocity.Set(Math.random() * 400 - 200, Math.random() * 400 - 200);
+	bodies.push(world.CreateBody(b2body));
 }
 
 
-function createBall( x, y ) {
+function createBall(x, y) {
 
 	var x = x || Math.random() * stage[2];
 	var y = y || Math.random() * -200;
 
-    var scale = Math.random()+0.1;
-//var scale = 1;
-var xsize = 120*scale;
-var ysize = 100*scale;
+	var scale = Math.random() + 0.1;
+	//var scale = 1;
+	var xsize = 120 * scale;
+	var ysize = 100 * scale;
 
-var size = 120*scale;
+	var size = 120 * scale;
 
 	var element = document.createElement("canvas");
-		element.width = xsize;
-    element.height = ysize;
+	element.width = xsize;
+	element.height = ysize;
 
 	element.style.position = 'absolute';
 	//element.style.left = -200 + 'px';
@@ -280,26 +289,45 @@ var size = 120*scale;
 	var num_circles = Math.random() * 10 >> 0;
 
 
-var graphics = element.getContext("2d");
+	var graphics = element.getContext("2d");
 
-	for (var i = size; i > 0; i-= (size/num_circles)) {
-        /*
+	for (var i = size; i > 0; i -= (size / num_circles)) {
+		/*
 		graphics.fillStyle = theme[ (Math.random() * 4 >> 0) + 1];
 		graphics.beginPath();
 		graphics.arc(size * .5, size * .5, i * .5, 0, PI2, true);
 		graphics.closePath();
 	    graphics.fill();
         */
- var img = new Image;
-img.onload = function(){ graphics.drawImage(img, 0,0, xsize, ysize); };
-//img.src = "../img/cat.svg";
-img.src = "img/tete.svg";
+		var img = new Image;
+		img.onload = function () {
+			graphics.drawImage(img, 0, 0, xsize, ysize);
+		};
+		//img.src = "../img/cat.svg";
+		switch(Math.floor(Math.random() * 5)){
+			case 0 :
+				img.src = "img/1.svg";
+				break;
+			case 1 :
+				img.src = "img/2.svg";
+				break;
+			case 2 :
+				img.src = "img/3.svg";
+				break;
+			case 3 :
+				img.src = "img/4.svg";
+				break;
+			case 4 :
+				img.src = "img/5.svg";
+				break;
+		}
+		//img.src = "img/tete.svg";
 
 	}
 
 	canvas.appendChild(element);
 
-	elements.push( element );
+	elements.push(element);
 	var b2body = new b2BodyDef();
 
 	var circle = new b2CircleDef();
@@ -308,11 +336,13 @@ img.src = "img/tete.svg";
 	circle.friction = friction;
 	circle.restitution = restitution;
 	b2body.AddShape(circle);
-	b2body.userData = {element: element};
+	b2body.userData = {
+		element: element
+	};
 
-	b2body.position.Set( x, y );
-	b2body.linearVelocity.Set( Math.random() * 400 - 200, Math.random() * 400 - 200 );
-	bodies.push( world.CreateBody(b2body) );
+	b2body.position.Set(x, y);
+	b2body.linearVelocity.Set(Math.random() * 400 - 200, Math.random() * 400 - 200);
+	bodies.push(world.CreateBody(b2body));
 }
 
 //
@@ -343,9 +373,9 @@ function loop() {
 		element.style.top = (body.m_position0.y - (element.height >> 1)) + 'px';
 
 
-			var style = 'rotate(' + (body.m_rotation0 * 57.2957795) + 'deg) translateZ(0)';
-            var style2 = 'rotate(' + (body.m_rotation0 * 57.2957795) + 'deg)';
-            element.style.webkitTransform = style2;
+		var style = 'rotate(' + (body.m_rotation0 * 57.2957795) + 'deg) translateZ(0)';
+		var style2 = 'rotate(' + (body.m_rotation0 * 57.2957795) + 'deg)';
+		element.style.webkitTransform = style2;
 
 	}
 
@@ -356,7 +386,7 @@ function loop() {
 
 function createBox(world, x, y, width, height, fixed) {
 
-	if (typeof(fixed) == 'undefined') {
+	if (typeof (fixed) == 'undefined') {
 
 		fixed = true;
 
@@ -374,18 +404,17 @@ function createBox(world, x, y, width, height, fixed) {
 
 	var boxBd = new b2BodyDef();
 	boxBd.AddShape(boxSd);
-	boxBd.position.Set(x,y);
+	boxBd.position.Set(x, y);
 
 	return world.CreateBody(boxBd);
 
 }
 
-function mouseDrag()
-{
+function mouseDrag() {
 	// mouse press
 	if (createMode) {
 
-		createBall( mouse.x, mouse.y );
+		createBall(mouse.x, mouse.y);
 
 	} else if (isMouseDown && !mouseJoint) {
 
@@ -453,7 +482,7 @@ function getBodyAtMouse() {
 
 		if (shapes[i].m_body.IsStatic() == false) {
 
-			if ( shapes[i].TestPoint(mousePVec) ) {
+			if (shapes[i].TestPoint(mousePVec)) {
 
 				body = shapes[i].m_body;
 				break;
@@ -483,9 +512,9 @@ function setWalls() {
 		walls[3] = null;
 	}
 
-	walls[0] = createBox(world, stage[2] / 2, - wall_thickness, stage[2], wall_thickness);
+	walls[0] = createBox(world, stage[2] / 2, -wall_thickness, stage[2], wall_thickness);
 	walls[1] = createBox(world, stage[2] / 2, stage[3] + wall_thickness, stage[2], wall_thickness);
-	walls[2] = createBox(world, - wall_thickness, stage[3] / 2, wall_thickness, stage[3]);
+	walls[2] = createBox(world, -wall_thickness, stage[3] / 2, wall_thickness, stage[3]);
 	walls[3] = createBox(world, stage[2] + wall_thickness, stage[3] / 2, wall_thickness, stage[3]);
 
 	wallsSetted = true;
